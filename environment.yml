@@ -1,0 +1,11 @@
+name: conversor_sha256
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10
+  - pandas
+  - openpyxl
+  - pyarrow
+  - tabulate
+  - jupyter

@@ -1,0 +1,6 @@
+ID_Cliente,Nome,CPF,Email,Telefone,Cidade,Valor_Investido
+1001,Alice Ferreira,123.456.789-01,alice.ferreira@empresa.com.br,(11) 98765-4321,Sao Paulo,15400.0
+1002,Bruno Carvalho,234.567.890-12,BRUNO.CARVALHO@GMAIL.COM,(21) 99876-5432,Rio de Janeiro,2350.5
+1003,Carla Mendonca,345.678.901-23,carla.m@dominio.org,(31) 98123-4567,Belo Horizonte,48900.0
+1004,Diego Souza,456.789.012-34,diego.souza@provedor.net,(41) 99234-5678,Curitiba,1200.0
+1005,Elena Martins,567.890.123-45,elena@startup.io,(51) 99345-6789,Porto Alegre,31200.75

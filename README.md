@@ -1,184 +1,161 @@
-# Conversor de Arquivos para SHA-256
+# Anonimizador Criptografico de Dados Tabulares (SHA-256 / LGPD)
 
-Este script converte arquivos **TXT**, **CSV** ou **XLSX** em **SHA-256**. Ele lê o conteúdo do arquivo, calcula o hash SHA-256 de cada linha e salva o resultado em um novo arquivo no formato desejado (TXT, CSV ou XLSX). O projeto foi desenvolvido para ser simples, mas altamente personalizável.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/suelio/conversor_sha256/blob/main/conversor_sha256.ipynb)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Pandas](https://img.shields.io/badge/pandas-2.0%2B-150458.svg)](https://pandas.pydata.org/)
+[![PyArrow](https://img.shields.io/badge/pyarrow-12.0%2B-d22128.svg)](https://arrow.apache.org/)
 
----
+O **Conversor SHA-256** e uma biblioteca e ferramenta de linha de comando em Python voltada para a **pseudonimizacao e protecao criptografica de dados pessoais (PII)** em conformidade com as diretrizes da **LGPD** (Lei Geral de Protecao de Dados) e **GDPR**.
 
-## Funcionalidades
-
-- **Conversão de arquivos**: Converte arquivos TXT, CSV ou XLSX em SHA-256.
-- **Formato de saída**: Permite salvar o resultado em TXT, CSV ou XLSX.
-- **Delimitadores personalizados**: Para arquivos CSV, é possível escolher entre diferentes delimitadores (vírgula, ponto e vírgula, tabulação, pipe).
-- **Manutenção da coluna original**: O usuário pode optar por manter ou remover a coluna original no arquivo de saída.
-- **Cabeçalho personalizado**: Permite incluir ou excluir cabeçalho no arquivo de saída.
+O projeto permite transformar valores sensiveis em hashes criptograficos irreversiveis com suporte a **Salteamento (Salt)**, normalizacao previa de documentos e hashing seletivo de colunas, preservando as informacoes de negocio para analise de dados e machine learning.
 
 ---
 
-## Como Usar
+## Principais Funcionalidades
 
-### 1. Instalação das Dependências
+### 1. Anonimizacao Seletiva de Colunas
+- Permite selecionar quais colunas devem ser criptografadas (por exemplo, `CPF`, `Email`, `Telefone`), mantendo inalteradas as colunas analiticas e de negocio (como `Valor`, `Data`, `Regiao`, `Categoria`).
+- Opcao de manter a coluna original acompanhada da versao em hash para comparacao e validacao tecnica.
 
-Antes de executar o script, certifique-se de que as bibliotecas necessárias estão instaladas. Você pode instalá-las usando o seguinte comando:
+### 2. Salteamento Criptografico (Salt / HMAC)
+- Suporte a aplicacao de chaves secretas (*Salt*) durante o calculo do hash.
+- Mitiga riscos contra ataques de forca bruta, ataques de dicionario e tabelas pre-computadas (*Rainbow Tables*), atendendo aos padroes de seguranca da informacao corporativa.
+
+### 3. Normalizacao Previa de Dados Sensiveis (PII)
+- Higienizacao automatica antes da geracao do hash:
+  - **Documentos (CPF/CNPJ/RG)**: Remocao automatica de pontuacoes, barras e tracos (`123.456.789-00` e tratado identicamente a `12345678900`).
+  - **E-mails**: Remocao de espacos em branco e conversao para minusculas.
+  - **Telefones**: Padronizacao apenas de digitos numericos.
+
+### 4. Impressao Digital de Linha (Record Fingerprint)
+- Opcao de gerar um hash composto baseado na combinacao de todos os campos do registro, util para deduplicacao eficiente e controle de integridade em pipelines ETL.
+
+### 5. Multiplos Algoritmos e Formatos
+- **Algoritmos Criptograficos**: SHA-256 (padrao), SHA-512, SHA-384, SHA-1 e MD5.
+- **Suporte Multi-Formato**: Entrada e saida compativeis com CSV, TXT, TSV, planilhas Excel (.xlsx), arquivos colunares Parquet e documentos JSON.
+- **Processamento em Lote (Batch)**: Processa pastas inteiras de arquivos de forma automatizada com resumo consolidado de execucao.
+
+---
+
+## Estrutura do Repositorio
+
+```text
+conversor_sha256/
+|-- hasher/                       # Pacote Python modular
+|   |-- __init__.py               # Exports principais
+|   |-- algorithms.py             # Motores criptograficos (SHA-256, 512, HMAC)
+|   |-- normalizer.py             # Normalizacao e higienizacao de PII
+|   |-- reader.py                 # Leitura universal com autodeteccao
+|   |-- writer.py                 # Gravacao nos formatos suportados
+|   `-- engine.py                 # Orquestrador central DataHasher
+|
+|-- data/                         # Datasets de teste
+|   `-- clientes_exemplo.csv      # Amostra com campos de CPF, Email e Telefone
+|
+|-- notebooks/
+|   `-- demonstracao_anonimizacao.ipynb # Notebook com fluxo didatico
+|
+|-- conversor_sha256.ipynb        # Notebook oficial pronto para o Google Colab
+|-- cli.py                        # Interface de linha de comando (interativa e direta)
+|-- environment.yml               # Configuracao para Anaconda/Conda
+|-- requirements.txt              # Dependencias para pip
+|-- .gitignore                    # Arquivos ignorados pelo Git
+|-- LICENSE                       # Licenca MIT
+`-- README.md                     # Documentacao tecnica oficial
+```
+
+---
+
+## Instalacao
+
+### Com Anaconda / Conda (Recomendado)
 
 ```bash
-pip install pandas openpyxl
+# Criar ambiente dedicado
+conda env create -f environment.yml
+conda activate conversor_sha256
+
+# Ou instalar no ambiente atual
+conda install --file requirements.txt -y
 ```
 
-### 2. Executando o Script
+### Com Pip
 
-- Execute o script `conversor_sha256.ipynb` no **Jupyter Notebook** ou **Google Colab**.
-- Siga as instruções fornecidas pelo script:
-
-  1. **Digite o nome do arquivo** (com extensão).
-  2. **Informe se o arquivo original tem cabeçalho** (s/n).
-  3. **Escolha o delimitador** (se o arquivo for CSV).
-  4. **Decida se deseja manter a coluna original** (s/n).
-  5. **Escolha o formato de saída** (TXT, CSV ou XLSX).
-  6. **Informe se deseja incluir cabeçalho no arquivo de saída** (s/n).
-  7. **Digite o caminho onde deseja salvar o arquivo** (deixe em branco para salvar no diretório atual).
-
----
-
-### 3. Exemplo de Uso
-
-#### Arquivo de Entrada (`exemplo.csv`):
-
-```csv
-Nome
-Alice
-Bob
-Charlie
-```
-
-#### Execução do Script:
-
-1. Digite o nome do arquivo: `exemplo.csv`
-2. O arquivo original tem cabeçalho? (s/n): `s`
-3. Escolha o delimitador do arquivo CSV: `1` (vírgula)
-4. Deseja manter a coluna original? (s/n): `n`
-5. Escolha o formato de saída: `2` (CSV)
-6. Deseja incluir cabeçalho no arquivo de saída? (s/n): `s`
-7. Digite o caminho onde deseja salvar o arquivo: (deixe em branco)
-
-#### Arquivo de Saída (`exemplo_sha256.csv`):
-
-```csv
-SHA256
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb
-2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6
+```bash
+pip install -r requirements.txt
 ```
 
 ---
 
-## Personalização e Alterações
+## Exemplos de Uso
 
-O script foi projetado para ser flexível e permitir alterações conforme necessário. Abaixo estão algumas sugestões de personalização:
+### 1. No Google Colab
+Abra o notebook oficial diretamente pelo link:
 
-### 1. Adicionar Novos Formatos de Entrada
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/suelio/conversor_sha256/blob/main/conversor_sha256.ipynb)
 
-Se você deseja adicionar suporte a outros formatos de arquivo (por exemplo, JSON), siga estas etapas:
+---
 
-- Adicione a extensão na função `verificar_arquivo`.
-- Implemente a lógica de leitura do novo formato na função `main`.
-
-Exemplo:
+### 2. Como Biblioteca Python em seus Pipelines
 
 ```python
-if nome_arquivo.endswith('.json'):
-    df = pd.read_json(nome_arquivo)
-```
+from hasher import DataHasher
 
-### 2. Alterar o Algoritmo de Hash
+# 1. Anonimizar colunas especificas com Salt criptografico
+resultado = DataHasher.process_file(
+    source="data/clientes_exemplo.csv",
+    columns=["CPF", "Email", "Telefone"],
+    algorithm="sha256",
+    salt="chave_secreta_lgpd",
+    target_format="parquet"
+)
 
-Se você quiser usar outro algoritmo de hash (por exemplo, MD5 ou SHA-1), basta modificar a função `calcular_sha256`:
+print(f"Arquivo gerado: {resultado['arquivo_destino']}")
+print(f"Linhas processadas: {resultado['linhas_processadas']}")
+print(f"Taxa de velocidade: {resultado['taxa_linhas_por_segundo']} linhas/s")
 
-```python
-def calcular_md5(texto):
-    return hashlib.md5(texto.encode()).hexdigest()
-```
-
-### 3. Adicionar Novos Delimitadores
-
-Para adicionar novos delimitadores ao processamento de arquivos CSV, basta atualizar o dicionário `delimitadores` na função `main`.
-
-Exemplo:
-
-```python
-delimitadores = {'1': ',', '2': ';', '3': '\t', '4': '|', '5': ':'}
-```
-
-### 4. Modificar o Formato de Saída
-
-Se você deseja adicionar novos formatos de saída (por exemplo, JSON), siga estas etapas:
-
-- Adicione a extensão no dicionário `extensoes`.
-- Implemente a lógica de salvamento do novo formato na função `main`.
-
-Exemplo:
-
-```python
-if extensao_saida == '.json':
-    df.to_json(nome_saida, orient='records')
+# 2. Criar uma coluna de fingerprint da linha inteira
+res_fingerprint = DataHasher.process_file(
+    source="data/clientes_exemplo.csv",
+    fingerprint_col="hash_registro",
+    target_format="csv"
+)
 ```
 
 ---
 
-## Informações Técnicas
+### 3. Via Linha de Comando (CLI)
 
-### Dependências
+#### Modo Direto por Argumentos
+```bash
+# Anonimizar colunas sensiveis para formato Parquet
+python cli.py data/clientes_exemplo.csv --columns "CPF,Email" --salt "segredo123" -f parquet
 
-O script utiliza as seguintes bibliotecas:
+# Anonimizar todas as colunas de texto com SHA-512
+python cli.py data/clientes_exemplo.csv -a sha512 -f xlsx
 
-- **pandas**: Para manipulação de dados (leitura e escrita de arquivos CSV, XLSX, etc.).
-- **openpyxl**: Para leitura e escrita de arquivos XLSX.
-- **hashlib**: Para cálculo de hashes SHA-256.
+# Processamento em lote de todos os arquivos de um diretorio
+python cli.py data --batch --columns "CPF" -f csv
+```
 
-Certifique-se de que essas bibliotecas estejam instaladas antes de executar o script.
-
-### Estrutura do Código
-
-- **Função `calcular_sha256`**: Calcula o hash SHA-256 de um texto.
-- **Função `verificar_arquivo`**: Verifica se o arquivo tem uma extensão válida.
-- **Função `verificar_coluna_unica`**: Verifica se o arquivo contém apenas uma coluna.
-- **Função `main`**: Função principal que gerencia a execução do script.
-
----
-
-## Licença
-
-Este projeto está licenciado sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-### Condições da Licença
-
-- **Atribuição**: Se você usar ou modificar este projeto, deve creditar o autor original (Suelio Lima).
-- **Uso Comercial**: O projeto pode ser usado para fins comerciais.
-- **Modificações**: Você pode alterar o código, mas deve incluir a licença original.
+#### Modo Interativo
+Execute sem parametros para acessar o menu guiado:
+```bash
+python cli.py
+```
+O menu interativo permite utilizar o Explorador de Arquivos do Windows para selecionar a base de dados, escolher as colunas numeradas e definir o algoritmo de forma visual.
 
 ---
 
 ## Autor
 
 - **Suelio Lima**
-  - Email: suelio@gmail.com
-  - GitHub: [suelio](https://github.com/suelio)
+  - GitHub: [@suelio](https://github.com/suelio)
+  - Repositorio: [github.com/suelio/conversor_sha256](https://github.com/suelio/conversor_sha256)
 
 ---
 
-## Contribuições
+## Licenca
 
-Contribuições são bem-vindas! Se você deseja melhorar este projeto, siga estas etapas:
-
-1. Faça um fork do repositório.
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`).
-3. Commit suas alterações (`git commit -m 'Adicionando nova feature'`).
-4. Push para a branch (`git push origin feature/nova-feature`).
-5. Abra um Pull Request.
-
----
-
-## Problemas Conhecidos
-
-- O script não suporta arquivos com múltiplas colunas. Se você precisar processar arquivos com mais de uma coluna, considere modificar a função `verificar_coluna_unica`.
-
----
+Este projeto e distribuido sob os termos da licenca **MIT**. Consulte o arquivo [LICENSE](LICENSE) para obter mais informacoes.
